@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.Testing;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -37,15 +37,20 @@ import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.vuforia.Vuforia;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Func;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.android.util.Size;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
+import org.firstinspires.ftc.robotcore.external.function.ContinuationResult;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureRequest;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureSequenceId;
@@ -55,6 +60,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraException;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraFrame;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraManager;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
 import org.firstinspires.ftc.robotcore.internal.network.CallbackLooper;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -75,9 +82,9 @@ import java.util.concurrent.TimeUnit;
  * by various means (e.g.: Device File Explorer in Android Studio; plugging the device into a PC and
  * using Media Transfer; ADB; etc)
  */
-@TeleOp(name="Concept: Webcam", group ="Concept")
+@TeleOp(name="Webcam", group ="Concept")
 @Disabled
-public class ConceptWebcam extends LinearOpMode {
+public class Webcam extends LinearOpMode{
 
     //----------------------------------------------------------------------------------------------
     // State
@@ -102,19 +109,19 @@ public class ConceptWebcam extends LinearOpMode {
     /** State regarding where and how to save frames when the 'A' button is pressed. */
     private int captureCounter = 0;
 
-    private File captureDirectory = AppUtil.ROBOT_DATA_DIR;
+    private File captureDirectory = Environment.getExternalStorageDirectory();
 
     /** A utility object that indicates where the asynchronous callbacks from the camera
      * infrastructure are to run. In this OpMode, that's all hidden from you (but see {@link #startCamera}
      * if you're curious): no knowledge of multi-threading is needed here. */
     private Handler callbackHandler;
 
+    private Bitmap last;
     //----------------------------------------------------------------------------------------------
     // Main OpMode entry
     //----------------------------------------------------------------------------------------------
 
     @Override public void runOpMode() {
-
         callbackHandler = CallbackLooper.getDefault().getHandler();
 
         cameraManager = ClassFactory.getInstance().getCameraManager();
@@ -149,6 +156,7 @@ public class ConceptWebcam extends LinearOpMode {
                 if (captureWhenAvailable) {
                     Bitmap bmp = frameQueue.poll();
                     if (bmp != null) {
+                        last = bmp;
                         int w = bmp.getWidth();
                         int h = bmp.getHeight();
 
@@ -245,6 +253,7 @@ public class ConceptWebcam extends LinearOpMode {
                                 }
                             })
                         );
+
                         synchronizer.finish(session);
                     } catch (CameraException|RuntimeException e) {
                         RobotLog.ee(TAG, e, "exception starting capture");
@@ -313,10 +322,12 @@ public class ConceptWebcam extends LinearOpMode {
             try (FileOutputStream outputStream = new FileOutputStream(file)) {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
                 telemetry.log().add("captured %s", file.getName());
+                telemetry.log().add("captured %s", file.getPath());
             }
         } catch (IOException e) {
             RobotLog.ee(TAG, e, "exception in saveBitmap()");
             error("exception saving %s", file.getName());
         }
     }
+
 }

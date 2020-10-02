@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.Testing;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -43,6 +43,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.android.util.Size;
 import org.firstinspires.ftc.robotcore.external.function.Consumer;
 import org.firstinspires.ftc.robotcore.external.function.Continuation;
@@ -75,9 +76,9 @@ import java.util.concurrent.TimeUnit;
  * by various means (e.g.: Device File Explorer in Android Studio; plugging the device into a PC and
  * using Media Transfer; ADB; etc)
  */
-@TeleOp(name="Concept: Webcam", group ="Concept")
+@TeleOp(name="Webcam Preview HTML", group ="Concept")
 @Disabled
-public class ConceptWebcam extends LinearOpMode {
+public class WebcamPreviewTest extends LinearOpMode {
 
     //----------------------------------------------------------------------------------------------
     // State
@@ -102,7 +103,7 @@ public class ConceptWebcam extends LinearOpMode {
     /** State regarding where and how to save frames when the 'A' button is pressed. */
     private int captureCounter = 0;
 
-    private File captureDirectory = AppUtil.ROBOT_DATA_DIR;
+    private File captureDirectory = Environment.getExternalStorageDirectory();
 
     /** A utility object that indicates where the asynchronous callbacks from the camera
      * infrastructure are to run. In this OpMode, that's all hidden from you (but see {@link #startCamera}
@@ -114,7 +115,6 @@ public class ConceptWebcam extends LinearOpMode {
     //----------------------------------------------------------------------------------------------
 
     @Override public void runOpMode() {
-
         callbackHandler = CallbackLooper.getDefault().getHandler();
 
         cameraManager = ClassFactory.getInstance().getCameraManager();
@@ -134,7 +134,7 @@ public class ConceptWebcam extends LinearOpMode {
             telemetry.update();
             waitForStart();
             telemetry.clear();
-            telemetry.addData(">", "Started...Press 'A' to capture frame");
+            telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
 
             boolean buttonPressSeen = false;
             boolean captureWhenAvailable = false;
@@ -146,22 +146,37 @@ public class ConceptWebcam extends LinearOpMode {
                 }
                 buttonPressSeen = buttonIsPressed;
 
-                if (captureWhenAvailable) {
+                if(captureWhenAvailable) {
                     Bitmap bmp = frameQueue.poll();
+
                     if (bmp != null) {
                         int w = bmp.getWidth();
                         int h = bmp.getHeight();
 
+                        int outW = 41;
+                        int outH = (int)((outW * 1.5) * h / w);
+                        String out = "<p>";
+                        for (int x = 0; x < outW; x++) {
+                            for (int y = 0; y < outH; y++) {
+                                String hexColor = String.format("#%06X", (0xFFFFFF & bmp.getPixel(x * w / outW, h-(y * h / outH)-1)));
+                                out += "<span style=\"color:" + hexColor + "\">█</span>";
+                            }
+                            out += "\n";
+                        }
+
                         telemetry.addData("Width", w);
-                        telemetry.addData("Height", h);
-                        int color = bmp.getPixel(w / 2, h / 2);
-                        telemetry.addData("R", Color.red(color));
-                        telemetry.addData("G", Color.green(color));
-                        telemetry.addData("B", Color.blue(color));
+                        telemetry.addData("height", h);
+                        telemetry.addData("Image", out);
+                        telemetry.addData("Length", out.length());
+                        //int color = bmp.getPixel(w / 2, h / 2);
+                        //telemetry.addData("R", Color.red(color));
+                        //telemetry.addData("G", Color.green(color));
+                        //telemetry.addData("B", Color.blue(color));
+
                         captureWhenAvailable = false;
-                        onNewFrame(bmp);
                     }
                 }
+
 
                 telemetry.update();
             }
@@ -313,6 +328,7 @@ public class ConceptWebcam extends LinearOpMode {
             try (FileOutputStream outputStream = new FileOutputStream(file)) {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
                 telemetry.log().add("captured %s", file.getName());
+                telemetry.log().add("captured %s", file.getPath());
             }
         } catch (IOException e) {
             RobotLog.ee(TAG, e, "exception in saveBitmap()");

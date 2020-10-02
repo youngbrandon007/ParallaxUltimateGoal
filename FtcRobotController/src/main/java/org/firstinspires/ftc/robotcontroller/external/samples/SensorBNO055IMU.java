@@ -34,6 +34,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Func;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
@@ -55,7 +56,7 @@ import java.util.Locale;
  * @see <a href="http://www.adafruit.com/products/2472">Adafruit IMU</a>
  */
 @TeleOp(name = "Sensor: BNO055 IMU", group = "Sensor")
-@Disabled                            // Comment this out to add to the opmode list
+//@Disabled                            // Comment this out to add to the opmode list
 public class SensorBNO055IMU extends LinearOpMode
     {
     //----------------------------------------------------------------------------------------------
@@ -72,6 +73,7 @@ public class SensorBNO055IMU extends LinearOpMode
     //----------------------------------------------------------------------------------------------
     // Main logic
     //----------------------------------------------------------------------------------------------
+    ElapsedTime t = new ElapsedTime();
 
     @Override public void runOpMode() {
 
@@ -81,7 +83,8 @@ public class SensorBNO055IMU extends LinearOpMode
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.calibrationDataFile = "AdafruitIMUCalibration.json";
         parameters.loggingEnabled      = true;
         parameters.loggingTag          = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
@@ -103,6 +106,8 @@ public class SensorBNO055IMU extends LinearOpMode
 
         // Loop and update the dashboard
         while (opModeIsActive()) {
+            telemetry.addData("Time", t.milliseconds());
+            t.reset();
             telemetry.update();
         }
     }
