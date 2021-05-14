@@ -12,6 +12,8 @@ public class chipotleBot extends LinearOpMode {
     DcMotor rightFront;
     DcMotor rightBack;
 
+    DcMotor collector;
+
     @Override
     public void runOpMode() throws InterruptedException {
         leftFront = hardwareMap.get(DcMotor.class, "lf");
@@ -19,14 +21,17 @@ public class chipotleBot extends LinearOpMode {
         rightFront = hardwareMap.get(DcMotor.class, "rf");
         rightBack = hardwareMap.get(DcMotor.class, "rb");
 
+        collector = hardwareMap.get(DcMotor.class, "cm");
+
         waitForStart();
 
         while(opModeIsActive()){
-            leftFront.setPower(gamepad1.left_stick_y);
-            leftBack.setPower(gamepad1.left_stick_y);
-            rightFront.setPower(gamepad1.left_stick_y);
-            rightBack.setPower(gamepad1.left_stick_y);
-            
+            leftFront.setPower(-gamepad1.left_stick_y);
+            leftBack.setPower(-gamepad1.left_stick_y);
+            rightFront.setPower(gamepad1.right_stick_y);
+            rightBack.setPower(gamepad1.right_stick_y);
+            collector.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
+
             telemetry.addData("left", gamepad1.left_stick_y);
             telemetry.addData("right", gamepad1.right_stick_y);
             telemetry.update();
